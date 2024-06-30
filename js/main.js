@@ -13,15 +13,24 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById('scene-container').appendChild(renderer.domElement);
 
-    // Create Earth (placeholder sphere for now)
+    // Create Earth with texture
     const geometry = new THREE.SphereGeometry(1, 32, 32);
-    const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+    const texture = new THREE.TextureLoader().load('assets/earth_texture.jpg');
+    const material = new THREE.MeshPhongMaterial({ map: texture });
     earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
 
-    // Add ambient light
-    const ambientLight = new THREE.AmbientLight(0x404040);
-    scene.add(ambientLight);
+    // Add directional light
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 3, 5);
+    scene.add(light);
+
+    // Add Stars
+    addStars();
+
+    //Add Satellite
+    satellite = new Satellite(2);
+    scene.add(satellite.mesh);
 
     // Start animation loop
     animate();
@@ -30,8 +39,21 @@ function init() {
 function animate() {
     requestAnimationFrame(animate);
     earth.rotation.y += 0.005;
+    satellite.update();
     renderer.render(scene, camera);
 }
+
+function addStars() {
+    const geometry = new THREE.SphereGeometry(0.1, 24, 24);
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    for (let i = 0; i < 1000; i++) {
+      const star = new THREE.Mesh(geometry, material);
+      const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
+      star.position.set(x, y, z);
+      scene.add(star);
+    }
+}
+
 
 // Initialize the scene
 init();
