@@ -1,56 +1,81 @@
+//Global Variabes
+let lastTime = 0;
 let scene, camera, renderer, earth;
+let satellites = [];
+
+//Constants for mapping to real-world
+const EARTH_RADIUS = 6371; //km
+const EARTH_ROTATION_SPEED = 7.2921159e-5; // radians per second
+const SCENE_SCALE = 1 / 1000; //1 unit in our window = 1000 km
 
 function init() {
     // Create scene
     scene = new THREE.Scene();
 
     // Create camera
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 5;
+    const aspect = window.innerWidth / window.innerHeight;
+    camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000000);
+    camera.position.set(0, 0, 4 * EARTH_RADIUS * SCENE_SCALE); //x=0, y=0, z = 4 earth radii away
 
     // Create renderer
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({antialias: true}); //argument for smoother rendering
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById('scene-container').appendChild(renderer.domElement);
 
     // Create Earth with texture
-    const geometry = new THREE.SphereGeometry(1, 32, 32);
-    const texture = new THREE.TextureLoader().load('assets/earth_texture.jpg');
-    const material = new THREE.MeshPhongMaterial({ map: texture });
-    earth = new THREE.Mesh(geometry, material);
+    const earthGeometry = new THREE.SphereGeometry(EARTH_RADIUS * SCENE_SCALE, 64, 64);
+    const earthTexture = new THREE.TextureLoader().load('assets/earth_texture.jpg');
+    const earthMaterial = new THREE.MeshPhongMaterial({map: earthTexture});
+    earth = new THREE.Mesh(earthGeometry, earthMaterial);
     scene.add(earth);
 
-    // Add directional light
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(5, 3, 5);
-    scene.add(light);
+    //Add ambient light
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    scene.add(ambientLight);
 
-    // Add Stars
+    // Add directional light
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+    sunLight.position.set(1, 0, 0).normalize();
+    scene.add(sunLight);
+
+    // Add Stars (background)
     addStars();
 
-    //Add Satellite
-    satellite = new Satellite(2);
-    scene.add(satellite.mesh);
-
     // Start animation loop
-    animate();
+    lastTime = performance.now(); //higher res than Date.now()
+    animate(lastTime);
 }
 
-function animate() {
+
+function animate(currentTime) {
+    //currentTime is in milliseconds as given by requestAnimationFrame 
     requestAnimationFrame(animate);
-    earth.rotation.y += 0.005;
-    satellite.update();
+    //This function tells the browser that you wish to perform an animation.
+    //It requests that the browser call a specified function (here it is animate()) to update an animation before the next repaint.
+    //The browser will call this function typically 60 times per second, but it will generally match the display refresh rate of the device.
+    //When the browser calls our animate function, it automatically passes a single argument to it.
+    //This argument is a DOMHighResTimeStamp, which represents the time when requestAnimationFrame started to execute callback functions.
+
+    // Calculate time passed since last frame
+    const deltaTime = (currentTime - lastTime) / 1000; // convert to seconds
+    lastTime = currentTime;
+
+    // Rotate Earth
+    //In Three.js rotation.y points upwards, x points to the right, z points to the viewer
+    earth.rotation.y += EARTH_ROTATION_SPEED * deltaTime;
+
+    // Render the scene
     renderer.render(scene, camera);
 }
 
 function addStars() {
-    const geometry = new THREE.SphereGeometry(0.1, 24, 24);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const starGeometry = new THREE.SphereGeometry(0.1, 24, 24);
+    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     for (let i = 0; i < 1000; i++) {
-      const star = new THREE.Mesh(geometry, material);
-      const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
-      star.position.set(x, y, z);
-      scene.add(star);
+        const star = new THREE.Mesh(starGeometry, starMaterial);
+        const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(1000000 * SCENE_SCALE));
+        star.position.set(x, y, z);
+        scene.add(star);
     }
 }
 
