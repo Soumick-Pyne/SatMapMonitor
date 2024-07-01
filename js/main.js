@@ -2,6 +2,7 @@
 let lastTime = 0;
 let scene, camera, renderer, earth;
 let satellites = [];
+let simulationSpeedFactor = 1;
 
 //Constants for mapping to real-world
 const EARTH_RADIUS = 6371; //km
@@ -41,6 +42,9 @@ function init() {
     // Add Stars (background)
     addStars();
 
+    // Initialize speed control
+    initSpeedControl();
+
     // Start animation loop
     lastTime = performance.now(); //higher res than Date.now()
     animate(lastTime);
@@ -59,13 +63,58 @@ function animate(currentTime) {
     // Calculate time passed since last frame
     const deltaTime = (currentTime - lastTime) / 1000; // convert to seconds
     lastTime = currentTime;
+    // Apply simulation speed factor
+    const scaledDeltaTime = deltaTime * simulationSpeedFactor;
 
     // Rotate Earth
     //In Three.js rotation.y points upwards, x points to the right, z points to the viewer
-    earth.rotation.y += EARTH_ROTATION_SPEED * deltaTime;
+   earth.rotation.y += EARTH_ROTATION_SPEED * scaledDeltaTime;
+
+   // Update satellites (when we add them later)
+   // satellites.forEach(sat => sat.update(scaledDeltaTime));
 
     // Render the scene
     renderer.render(scene, camera);
+}
+
+
+function initSpeedControl() {
+    const slider = document.getElementById('speed-slider');
+    const display = document.getElementById('speed-value');
+
+    function formatNumber(num) {
+        if (num >= 1e3) return (num / 1e3).toFixed(1) + 'k';
+        return num.toFixed(0);
+    }
+
+    function updateSpeed() {
+        const minp = 0;
+        const maxp = 100;
+        const minv = Math.log(1);
+        const maxv = Math.log(86400); // Max speed is now 1 day/s
+
+        const scale = (maxv - minv) / (maxp - minp);
+        simulationSpeedFactor = Math.exp(minv + scale * (slider.value - minp));
+        
+        let displaySpeed;
+        if (simulationSpeedFactor < 60) {
+            displaySpeed = formatNumber(simulationSpeedFactor) + 'x';
+        } else if (simulationSpeedFactor < 3600) {
+            displaySpeed = formatNumber(simulationSpeedFactor / 60) + ' min/s';
+        } else {
+            displaySpeed = formatNumber(simulationSpeedFactor / 3600) + ' h/s';
+        }
+        display.textContent = displaySpeed;
+
+        // Update tooltip with exact value
+        slider.title = simulationSpeedFactor.toFixed(2) + 'x';
+    }
+
+    slider.addEventListener('input', updateSpeed);
+    slider.addEventListener('change', updateSpeed);
+
+    // Initial update
+    updateSpeed();
 }
 
 function addStars() {
@@ -78,7 +127,6 @@ function addStars() {
         scene.add(star);
     }
 }
-
 
 // Initialize the scene
 init();

@@ -10,13 +10,25 @@
     </style>
 </head>
 <body>
+    <!-- Add the speed control slider here, before the scene container -->
+    <div id="speed-control" style="position: absolute; top: 10px; left: 10px; color: white; background-color: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; z-index: 1000; width: 300px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <label for="speed-slider">Simulation Speed: </label>
+            <span id="speed-value">1x</span>
+        </div>
+        <input type="range" id="speed-slider" min="0" max="100" step="1" value="0" style="width: 100%;">
+        <div id="speed-scale" style="display: flex; justify-content: space-between; font-size: 0.8em; margin-top: 5px;">
+            <span>1x</span>
+            <span>1 min/s</span>
+            <span>1 hour/s</span>
+            <span>1 day/s</span>
+        </div>
+    </div>
+
+    <!-- Your existing scene container -->
     <div id="scene-container"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="js/Satellite.js"></script>
-    <script src="js/main.js"></script>
-</body>
-<body>
-    <div id="scene-container"></div>
+
+    <!-- Your script tags -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="js/main.js"></script>
 </body>
