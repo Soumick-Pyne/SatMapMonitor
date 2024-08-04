@@ -9,6 +9,7 @@ const EARTH_RADIUS = 6371; //km
 const EARTH_ROTATION_SPEED = 7.2921159e-5; // radians per second
 const SCENE_SCALE = 1 / 1000; //1 unit in our window = 1000 km
 
+
 function init() {
     // Create scene
     scene = new THREE.Scene();
@@ -42,6 +43,12 @@ function init() {
     // Add Stars (background)
     addStars();
 
+    // Create and add satellites
+    //const sat1 = new Satellite("LEO-1", 7000, 0.001, Math.PI/4, 0, 0, 0, 10, 1000);
+    //const sat2 = new Satellite("LEO-2", 7200, 0.001, Math.PI/3, Math.PI/2, 0, 0, 15, 1200);
+    //satellites.push(sat1, sat2);
+    //satellites.forEach(sat => scene.add(sat.mesh));
+
     // Initialize speed control
     initSpeedControl();
 
@@ -66,9 +73,12 @@ function animate(currentTime) {
     // Apply simulation speed factor
     const scaledDeltaTime = deltaTime * simulationSpeedFactor;
 
+    // Update satellites
+    //satellites.forEach(sat => sat.update(scaledDeltaTime));
+
     // Rotate Earth
     //In Three.js rotation.y points upwards, x points to the right, z points to the viewer
-   earth.rotation.y += EARTH_ROTATION_SPEED * scaledDeltaTime;
+    earth.rotation.y += EARTH_ROTATION_SPEED * scaledDeltaTime;
 
    // Update satellites (when we add them later)
    // satellites.forEach(sat => sat.update(scaledDeltaTime));
